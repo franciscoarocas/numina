@@ -435,6 +435,38 @@ def process_format_version_2(basedir, loaded_data, loaded_data_extra=None,
     return backend
 
 
+
+def process_format_version_customDAL(basedir, loaded_data, loaded_data_extra=None, profile_path_extra=None):
+    """
+        User can use its own DAL (Data access label) instead use the numina dals.
+        The path to the custom DAL is included into the control.yaml file used to execute the recipes
+    """
+
+    DALPath = loaded_data['DAL']
+
+    import importlib
+
+    DALModulePath, DALClassName = DALPath.rsplit('.', 1)
+    customDAL = getattr(importlib.import_module(DALModulePath), DALClassName)
+
+    import numina.instrument.assembly as asbl
+    from numina.dal.customdaliface import CustomDALIface
+    
+    if not issubclass(customDAL, CustomDALIface):
+        raise TypeError("Custom dal must be subclass of CustomDalIface class")
+
+    sys_drps = numina.drps.get_system_drps()
+    com_store = asbl.load_panoply_store(sys_drps, profile_path_extra)
+    backend = customDAL(
+        sys_drps, [], loaded_data,
+        extra_data=loaded_data_extra,
+        basedir=basedir,
+        components=com_store
+    )
+    return backend
+
+
+
 def create_datamanager(reqfile, basedir, datadir,
                        extra_control=None, profile_path_extra=None,
                        persist=True):
@@ -455,7 +487,12 @@ def create_datamanager(reqfile, basedir, datadir,
     control_format = loaded_data.get('version', 1)
     _logger.info('control format version %d', control_format)
 
-    if control_format == 1:
+    if 'DAL' in loaded_data:
+
+        _backend = process_format_version_customDAL(basedir, loaded_data, loaded_data_extra, profile_path_extra)
+        datamanager = DataManager(basedir, datadir, _backend)
+
+    elif control_format == 1:
         _backend = process_format_version_1(basedir, loaded_data, loaded_data_extra, profile_path_extra)
         datamanager = DataManager(basedir, datadir, _backend)
         datamanager.workdir_tmpl = "obsid{obsid}_work"
