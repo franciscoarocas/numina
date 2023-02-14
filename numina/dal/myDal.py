@@ -33,3 +33,7 @@ class MyDal(CustomDALIface):
 
 	def update_result(self, task, serialized, filename):
 		pass
+
+
+	def search_parameter(self, name, tipo, obsres, options=None):
+		pass
