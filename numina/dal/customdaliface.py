@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 
 from typing import Union
 
+
 class CustomDALIface(ABC, BaseHybridDAL):
 
 
@@ -22,12 +23,44 @@ class CustomDALIface(ABC, BaseHybridDAL):
         self.obsBlock : str = controlYaml['obsBlock']
         
         self.products : dict = dict()
+        
+        self.instrument = None
 
         newArgs = list(args)
         newArgs[1] = {} # Change second parameter [] to {}
         newArgs = tuple(newArgs)
 
         super(CustomDALIface, self).__init__(*newArgs, **kwargs)
+
+
+    def add_obs(self, obtable : list[dict]) -> None:
+        # NOTE: modifies the input parameter obtable
+
+        if not self.instrument:
+            self.instrument = self._getInstrument()
+            for ob in obtable:
+                ob['instrument'] = self.instrument
+                #ob['id'] = self._getID()
+
+        super().add_obs(obtable)
+
+
+    @abstractmethod
+    def _getInstrument(self) -> None:
+        """
+            Gets the instrument of the observation
+            The instrument can be unknown when use execute the pipeline
+            But you can get using the program and block of the observation
+        """
+        pass
+
+
+    @abstractmethod
+    def _getID(self, ob : dict) -> Union[str, int]:
+        """
+            Get the id of the ob
+        """
+        pass
 
 
     @abstractmethod

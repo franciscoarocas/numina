@@ -4,6 +4,9 @@ from numina.dal import StoredParameter, StoredProduct
 
 from numina.dal.customdaliface import CustomDALIface
 
+import string
+import random
+
 import logging
 
 import requests
@@ -80,6 +83,37 @@ class GTC_API(CustomDALIface):
 		oblock = oblock_from_dict(este)
 
 		return oblock
+	
+
+
+	def _getInstrument(self):
+		# FALTA ENDPOINT PARA OBTENER EL INSTRUMENTO A TRAVÉS DE PROGRAMA Y BLOQUE DE OBSERVACIÓN
+		# SE OBTIENE DESCARGANDO UN FRAME, Y VIENDO DE QUE INSTRUMENTO ES
+
+		query = {
+			"criterias":[
+				{
+					"type":"programidcriteria",
+					"programID": self.programID
+				},
+				{
+					"type":"observationblockidcriteria",
+					"observationBlockID": self.obsBlock
+				},
+				{
+					"type": "operatorcriteria",
+					"operator": "AND"
+				}
+			]
+		}
+
+		result = self.__query("scidb/rest/frames/query", "POST", query)
+
+		return result[0]['camera']['instrument']
+
+
+	def _getID(self):
+		return ''.join(random.choices(string.ascii_lowercase, k=16))
 
 
 	def update_result(self, task, serialized, filename):
@@ -87,11 +121,13 @@ class GTC_API(CustomDALIface):
 		pass
 
 
+
 	def search_parameter(self, name, tipo, obsres, options=None):
 		
 		if name == 'obresult':
 			return StoredParameter(obsres)
 		
+
 
 	def search_product(self, name, tipo, obsres, options):
 
