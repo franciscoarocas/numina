@@ -1,5 +1,6 @@
 
-from numina.core.oresult import ObservingBlock 
+from numina.core.oresult import ObservingBlock, ObservationResult
+from numina.types.product import DataProductMixin
 
 from .dictdal import BaseHybridDAL
 
@@ -17,9 +18,11 @@ class CustomDALIface(ABC, BaseHybridDAL):
         if 'programID' not in controlYaml or 'obsBlock' not in controlYaml:
             raise KeyError("ProgramID and obsBlock keys must be in the control.yaml file")
         
-        self.programID = controlYaml['programID']
-        self.obsBlock = controlYaml['obsBlock']
+        self.programID : str = controlYaml['programID']
+        self.obsBlock : str = controlYaml['obsBlock']
         
+        self.products : dict = dict()
+
         newArgs = list(args)
         newArgs[1] = {} # Change second parameter [] to {}
         newArgs = tuple(newArgs)
@@ -36,7 +39,7 @@ class CustomDALIface(ABC, BaseHybridDAL):
 
 
     @abstractmethod    
-    def update_result(self, task, serialized, filename) -> None:
+    def update_result(self, task, serialized, filename : str) -> None:
         """
             Called when finish the recipe
             serialized params contents the same data as the result.json file
@@ -45,9 +48,19 @@ class CustomDALIface(ABC, BaseHybridDAL):
 
 
     @abstractmethod
-    def search_parameter(self, name, tipo, obsres, options=None):
+    def search_parameter(self, name : str, tipo, obsres : ObservationResult, options : dict = None):
         """
             Called for each "Requeriment" in each recipe
             'obresult' is for each ObservationResultType requeriment
+        """
+        pass
+
+
+    @abstractmethod
+    def search_product(self, name : str, tipo : DataProductMixin, obsres : ObservationResult, options : dict = None):
+        """
+            A result can be a MasterBias, MasterFlat, etc.
+            The products are required into the recipes using the "Requeriment()" function
+            Products usually are stored in self.products. If not, you need to find it 
         """
         pass

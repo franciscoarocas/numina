@@ -1,6 +1,6 @@
 
 from numina.core.oresult import oblock_from_dict
-from numina.dal import StoredParameter
+from numina.dal import StoredParameter, StoredProduct
 
 from numina.dal.customdaliface import CustomDALIface
 
@@ -83,6 +83,7 @@ class GTC_API(CustomDALIface):
 
 
 	def update_result(self, task, serialized, filename):
+		# Aquí actualizamos los valores de la base de datos
 		pass
 
 
@@ -90,3 +91,11 @@ class GTC_API(CustomDALIface):
 		
 		if name == 'obresult':
 			return StoredParameter(obsres)
+		
+
+	def search_product(self, name, tipo, obsres, options):
+
+		if name in self.products:
+			return StoredProduct(id=0, tags={}, content=self.products[name])
+		
+		# Buscarlo en la API
