@@ -11,7 +11,7 @@ import logging
 
 import requests
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class GTC_API(CustomDALIface):
@@ -19,10 +19,30 @@ class GTC_API(CustomDALIface):
 
 	def __init__(self, *args, **kwargs):
 		
-		super().__init__(*args, **kwargs)
-
 		self.__host = "http://localhost:8080/"
 
+		super().__init__(*args, **kwargs)
+
+
+
+	def load_observations(self, obModes, is_session=False):
+
+		loaded_obs = []
+		sessions = []
+
+		for obMode in obModes:
+
+			sess = []
+			doc = {
+				'mode' : obMode,
+				'id'   : self._getID(),
+				"instrument" : self.instrument
+			}
+			sess.append(dict(id=doc['id'], enabled=True, requeriments={}))
+			loaded_obs.append(doc)
+			sessions.append(sess)
+
+		return sessions, loaded_obs
 
 
 	def __query(self, path, type = "GET", body = None):
@@ -110,6 +130,7 @@ class GTC_API(CustomDALIface):
 		result = self.__query("scidb/rest/frames/query", "POST", query)
 
 		return result[0]['camera']['instrument']
+
 
 
 	def _getID(self):

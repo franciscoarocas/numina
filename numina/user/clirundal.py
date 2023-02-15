@@ -15,6 +15,8 @@ import logging
 from .baserun import run_reduce
 from .helpers import create_datamanager, load_observations
 
+from numina.dal.customdaliface import CustomDALIface
+
 _logger = logging.getLogger(__name__)
 
 
@@ -33,9 +35,14 @@ def mode_run_common_obs(args, extra_args):
     """Observing mode processing mode of numina."""
 
     # Loading observation result if exists
-    sessions, loaded_obs = load_observations(args.obsresult, args.session)
 
     datamanager = create_datamanager(args.reqs, args.basedir, args.datadir, extra_args.extra_control)
+
+    if isinstance(datamanager.backend, CustomDALIface):
+        sessions, loaded_obs = datamanager.backend.load_observations(args.obsresult, args.session)
+    else:
+        sessions, loaded_obs = load_observations(args.obsresult, args.session)
+
     datamanager.backend.add_obs(loaded_obs)
 
     # Start processing

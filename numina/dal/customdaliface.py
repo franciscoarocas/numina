@@ -24,7 +24,7 @@ class CustomDALIface(ABC, BaseHybridDAL):
         
         self.products : dict = dict()
         
-        self.instrument = None
+        self.instrument = self._getInstrument()
 
         newArgs = list(args)
         newArgs[1] = {} # Change second parameter [] to {}
@@ -33,16 +33,9 @@ class CustomDALIface(ABC, BaseHybridDAL):
         super(CustomDALIface, self).__init__(*newArgs, **kwargs)
 
 
-    def add_obs(self, obtable : list[dict]) -> None:
-        # NOTE: modifies the input parameter obtable
-
-        if not self.instrument:
-            self.instrument = self._getInstrument()
-            for ob in obtable:
-                ob['instrument'] = self.instrument
-                #ob['id'] = self._getID()
-
-        super().add_obs(obtable)
+    @abstractmethod
+    def load_observations(self, obModes, is_session=False):
+        pass
 
 
     @abstractmethod
